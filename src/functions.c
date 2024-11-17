@@ -11,7 +11,7 @@
 int parse_arguments(char *url, args *args){   
     // 99 like MAX_LENGTH
     return sscanf(url, "ftp://%99[^:]:%99[^@]@%99[^/]/%99[^\n]",
-                  args->user, args->password, args->host, args->url_path);
+                  args->user, args->password, args->host, args->path);
 }
 
 int connect_to_server(const char *address, int port){
@@ -32,6 +32,30 @@ int connect_to_server(const char *address, int port){
         return -1;
     }
 
-    printf("succesful connection\n");
+    //printf("succesful connection\n");
+    
+    char r_buffer[1024];
+    recv(sockfd, r_buffer, sizeof(r_buffer) - 1, 0);
+    printf("Server Response: %s\n", r_buffer);
+
     return sockfd;
+}
+
+int log_in(int socket_fd, char *user, char *passwd){
+    char buffer[128];
+    char r_buffer[1024];
+
+    snprintf(buffer, sizeof(buffer), "USER %s\r\n\n", user);
+    printf("sending: %s", buffer);
+    int size = send(socket_fd, buffer, strlen(buffer), 0);
+    recv(socket_fd, r_buffer, sizeof(r_buffer) - 1, 0);
+    printf("Server Response: %s", r_buffer);
+    
+    snprintf(buffer, sizeof(buffer), "PASS %s\r\n", passwd);
+    printf("sending: %s", buffer);
+    send(socket_fd, buffer, strlen(buffer), 0);
+    recv(socket_fd, r_buffer, sizeof(r_buffer) - 1, 0);
+    printf("Server Response: %s", r_buffer);
+
+    return 0;
 }
