@@ -12,6 +12,11 @@ typedef struct {
     char path[MAX_LENGTH];
 } args;
 
+typedef struct {
+    char *ip;
+    int port;
+} ip_addr;
+
 // saves arguments into args structure
 // FIX IF USER/PASSWORD EMPTY
 int parse_arguments(char *url, args *args);
@@ -24,4 +29,5 @@ int connect_to_server(const char *address, int port);
 // ADD SENSITIVITY FOR RESPONSES CODES
 int log_in(int socket_fd, char *user, char *passwd);
 
+int go_passive(int socket_fd, char *ip, int *port);
 #endif

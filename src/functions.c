@@ -59,3 +59,20 @@ int log_in(int socket_fd, char *user, char *passwd){
 
     return 0;
 }
+
+int go_passive(int socket_fd, char *ip, int *port){
+    int h1, h2, h3, h4, p1, p2;
+    
+    char buffer[1024];
+    send(socket_fd, "PASV\r\n", strlen("PASV\r\n"), 0);
+    recv(socket_fd, buffer, sizeof(buffer) - 1, 0);
+    printf("Server Response: %s\n", buffer);
+
+    if (sscanf(buffer, "227 Entering Passive Mode (%d,%d,%d,%d,%d,%d)", &h1, &h2, &h3, &h4, &p1, &p2) == 6) {
+        snprintf(ip, 16, "%d.%d.%d.%d", h1, h2, h3, h4);
+        
+        *port = p1 * 256 + p2;
+        return 1;
+    }
+    return 0;
+}

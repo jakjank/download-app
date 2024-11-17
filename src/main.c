@@ -46,11 +46,14 @@ int main(int argc, char *argv[]){
         exit(-1);
     }
 
-    char buffer[1024];
-    // Go into passive mode
-    send(socket_fd, "PASV\r\n", strlen("PASV\r\n"), 0);
-    recv(socket_fd, buffer, sizeof(buffer) - 1, 0);
-    printf("Server Response: %s\n", buffer);
-
+    // Enter passive mode and get IP and port for data
+    char ip[16];
+    int port;
+    if(go_passive(socket_fd, ip, &port) != 1){
+        printf("unable to enter pasv mode\n");
+        exit(-1);
+    }
+    
+    
     return 0;
 }
