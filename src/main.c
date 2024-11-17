@@ -21,15 +21,14 @@ int main(int argc, char *argv[]){
 
     // Get host IP address (inspired by given  getip.c)
     struct hostent *h;
-
     if((h = gethostbyname(args.host)) == NULL){
         printf("no such host: %s\n", args.host);
         exit(-1);
     }
+    const char *address = inet_ntoa(*((struct in_addr *)h->h_addr_list[0]));
 
-    char *address = inet_ntoa(*((struct in_addr *)h->h_addr_list[0]));
-
-    printf("host IP: %s\n", address);
-
+    // Open a connection
+    int socket_fd = connect_to_server(address, PORT);
+    printf("%d\n", socket_fd);
     return 0;
 }
