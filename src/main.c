@@ -34,14 +34,14 @@ int main(int argc, char *argv[]){
     //printf("%s\n", address);
 
     // Open a connection
-    int socket_fd = connect_to_server(address, PORT);
-    if(socket_fd == -1){
+    int socket_contr = get_socket(address, PORT, 1);
+    if(socket_contr == -1){
         printf("unable to open connection\n");
         exit(-1);
     }
 
     // Log in
-    if(log_in(socket_fd, args.user, args.password) == -1){
+    if(log_in(socket_contr, args.user, args.password) == -1){
         printf("unable to log-in\n");
         exit(-1);
     }
@@ -49,11 +49,24 @@ int main(int argc, char *argv[]){
     // Enter passive mode and get IP and port for data
     char ip[16];
     int port;
-    if(go_passive(socket_fd, ip, &port) != 1){
+    if(go_passive(socket_contr, ip, &port) == -1){
         printf("unable to enter pasv mode\n");
         exit(-1);
     }
-    
-    
+    printf("%s, %d \n", ip, port);
+
+    // get data socket
+    int data_socket = get_socket(ip, port, 0);
+     if(data_socket == -1){
+        printf("unable to get data socket\n");
+        exit(-1);
+    }
+
+    //change remote directory
+    if(download(socket_contr, data_socket, args.path) == -1){
+        printf("unable to download\n");
+        exit(-1);
+    }
+
     return 0;
 }

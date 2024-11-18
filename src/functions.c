@@ -14,13 +14,14 @@ int parse_arguments(char *url, args *args){
                   args->user, args->password, args->host, args->path);
 }
 
-int connect_to_server(const char *address, int port){
+int get_socket(const char *address, int port, int resp){
     int sockfd;
+    
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
         printf("Error creating socket\n");
         return(-1);
     }
-
+    
     struct sockaddr_in server_addr;
     bzero((char *) &server_addr, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
@@ -32,18 +33,20 @@ int connect_to_server(const char *address, int port){
         return -1;
     }
 
-    //printf("succesful connection\n");
-    
-    char r_buffer[1024];
-    recv(sockfd, r_buffer, sizeof(r_buffer) - 1, 0);
-    printf("Server Response: %s\n", r_buffer);
-
+    if(resp == 1){
+        char r_buffer[1024] = {0};
+        int bytes;
+        bytes = recv(sockfd, r_buffer, sizeof(r_buffer) - 1, 0);
+        if(bytes > 0){
+            printf("Server Response: %s\n", r_buffer);
+        }
+    }
     return sockfd;
 }
 
 int log_in(int socket_fd, char *user, char *passwd){
     char buffer[128];
-    char r_buffer[1024];
+    char r_buffer[1024] = {0};
 
     snprintf(buffer, sizeof(buffer), "USER %s\r\n\n", user);
     printf("sending: %s", buffer);
@@ -60,19 +63,87 @@ int log_in(int socket_fd, char *user, char *passwd){
     return 0;
 }
 
-int go_passive(int socket_fd, char *ip, int *port){
+int go_passive(int socket_fd, char *ip, int *port) {
     int h1, h2, h3, h4, p1, p2;
-    
-    char buffer[1024];
-    send(socket_fd, "PASV\r\n", strlen("PASV\r\n"), 0);
-    recv(socket_fd, buffer, sizeof(buffer) - 1, 0);
+    char buffer[1024] = {0};
+    int bytes;
+
+    // Send PASV command
+    if (send(socket_fd, "PASV\r\n", strlen("PASV\r\n"), 0) < 0) {
+        perror("send failed");
+        return -1;
+    }
+
+    // Receive response
+    bytes = recv(socket_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytes <= 0) {
+        perror("recv failed or no data received");
+        return -1;
+    }
+    buffer[bytes] = '\0';  // Null-terminate
+
     printf("Server Response: %s\n", buffer);
 
-    if (sscanf(buffer, "227 Entering Passive Mode (%d,%d,%d,%d,%d,%d)", &h1, &h2, &h3, &h4, &p1, &p2) == 6) {
+    // Parse server response
+    int parsed = sscanf(buffer, "227 Entering Passive Mode (%d,%d,%d,%d,%d,%d)",
+                        &h1, &h2, &h3, &h4, &p1, &p2);
+
+    if (parsed == 6) {
         snprintf(ip, 16, "%d.%d.%d.%d", h1, h2, h3, h4);
-        
         *port = p1 * 256 + p2;
         return 1;
     }
+
+    printf("Parsing failed. Response: [%s]\n", buffer);
+    return -1;
+}
+
+int go_to(int contr_socket, int data_socket, char *path){   
+    char buffer[1024] = {0};
+    char *last_slash = strrchr(path, '/');
+    char *filename;
+    char *tmp_path;
+
+    //get path
+    if (last_slash != NULL) {
+        size_t length = last_slash - path + 1;
+        strncpy(tmp_path, path, length);
+        tmp_path[length] = '\0';
+    } else {
+        tmp_path[0] = '\0';
+    }
+    //printf("path; %s\n", tmp_path);
+
+    if(tmp_path[0] != '\0'){
+        snprintf(buffer, sizeof(buffer), "CD %s\r\n\n", tmp_path);
+        if(send(contr_socket, buffer, strlen(buffer), 0) < 0){
+            printf("unable send CD ...\n");
+            return -1;
+        }
+    }
+
+    memset(buffer, '0', sizeof(buffer));
+    if(last_slash != 0){
+        strcpy(filename, last_slash + 1); 
+    }
+    else{
+        strcpy(filename, path);
+    }
+    //printf("filename; %s\n", filename);
+
+    snprintf(buffer, sizeof(buffer), "RETR %s\r\n\n", filename);
+    if(send(contr_socket, buffer, sizeof(buffer), 0) < 0){
+        printf("unable to send RETR ...\n");
+        return -1;
+    }
+
+    FILE *file = fopen("downloaded_file", "wb");
+
+    int bytes_received;
+    while ((bytes_received = recv(data_socket, buffer, sizeof(buffer), 0)) > 0) {
+        fwrite(buffer, 1, bytes_received, file);
+    }
+    fclose(file);
+    
     return 0;
 }

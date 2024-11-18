@@ -12,22 +12,24 @@ typedef struct {
     char path[MAX_LENGTH];
 } args;
 
-typedef struct {
-    char *ip;
-    int port;
-} ip_addr;
-
 // saves arguments into args structure
 // FIX IF USER/PASSWORD EMPTY
 int parse_arguments(char *url, args *args);
 
 // returns socket descriptor
-int connect_to_server(const char *address, int port);
+// if expecting response set resp to 1
+// otherwise response wont be read
+int get_socket(const char *address, int port, int resp);
 
 // tries to log-in with given credentials
 // returns -1 on error
 // ADD SENSITIVITY FOR RESPONSES CODES
 int log_in(int socket_fd, char *user, char *passwd);
 
+// sends pasv to the remote machine
+// sets port and ip
 int go_passive(int socket_fd, char *ip, int *port);
+
+int download(int contr_socket, int data_socket, char *path);
+
 #endif
