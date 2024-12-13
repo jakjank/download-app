@@ -48,26 +48,21 @@ int log_in(int socket_fd, char *user, char *passwd){
     char buffer[128];
     char r_buffer[1024] = {0};
 
-    snprintf(buffer, sizeof(buffer), "USER %s\r\n\n", user);
+    snprintf(buffer, sizeof(buffer), "USER %s\r\n", user);
     printf("sending: %s", buffer);
     int size = send(socket_fd, buffer, strlen(buffer), 0);
     recv(socket_fd, r_buffer, sizeof(r_buffer) - 1, 0);
-    printf("Server Response:\n");
-    while(recv(socket_fd, r_buffer, sizeof(r_buffer) - 1, 0) > 0){
-        printf("%s", r_buffer);
-        buffer[1024] = '\0';
-        printf("xd\n");
-    }
+    printf("Server Response: %s", r_buffer);
     
+    for(int i=0;i<1024;i++){
+        r_buffer[i] = '\0';
+    }
     snprintf(buffer, sizeof(buffer), "PASS %s\r\n", passwd);
     printf("sending: %s", buffer);
-    send(socket_fd, buffer, strlen(buffer), 0);
-    printf("Server Response:\n");
-    while(recv(socket_fd, r_buffer, sizeof(r_buffer) - 1, 0) > 0){
-        printf("%s", r_buffer);
-        buffer[1024] = '\0';
-        printf("xd\n");
-    }
+    size = send(socket_fd, buffer, strlen(buffer), 0);
+    //printf("sent %d bytes\n", size);
+    recv(socket_fd, r_buffer, sizeof(r_buffer) - 1, 0);
+    printf("Server Response: %s", r_buffer);
 
     return 0;
 }
@@ -76,9 +71,6 @@ int go_passive(int socket_fd, char *ip, int *port) {
     int h1, h2, h3, h4, p1, p2;
     char buffer[1024] = {0};
     int bytes;
-    // clear socket
-    bytes = recv(socket_fd, buffer, sizeof(buffer) - 1, 0);
-    buffer[bytes] = '\0';
 
     // Send PASV command
     if (send(socket_fd, "PASV\r\n", strlen("PASV\r\n"), 0) < 0) {
@@ -157,5 +149,10 @@ int go_to(int contr_socket, int data_socket, char *path){
     }
     fclose(file);
     
+    return 0;
+}
+
+int download(int contr_socket, int data_socket, char *path)
+{
     return 0;
 }
