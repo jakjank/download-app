@@ -40,6 +40,8 @@ int main(int argc, char *argv[]){
         exit(-1);
     }
 
+    sleep(3);
+
     // Log in
     if(log_in(socket_contr, args.user, args.password) == -1){
         printf("unable to log-in\n");
@@ -63,10 +65,10 @@ int main(int argc, char *argv[]){
     }
 
     //change remote directory
-    if(download(socket_contr, data_socket, args.path) == -1){
-        printf("unable to download\n");
-        exit(-1);
-    }
+    // if(download(socket_contr, data_socket, args.path) == -1){
+    //     printf("unable to download\n");
+    //     exit(-1);
+    // }
 
     return 0;
 }

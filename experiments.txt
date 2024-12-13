@@ -1,0 +1,39 @@
+Exp 1.
+1.
+Connect cables.
+2.
+tux3~ ifconfig eth1 up
+tux4~ ifconfig eth1 up
+3.
+4.
+tux3~ ping 172.16.10.154
+5.
+tux3~ route -n
+tux3~ arp -a
+tux4~ route -n
+tux4~ arp -a
+6.
+arp -d 172.16.10.254
+7.
+tux3: started wireshark
+8.
+tux3~ ping 172.16.10.154
+9.
+tux3: stop ping
+10.
+study logs?
+
+Exp 2.
+1.
+Connect tux2 cable
+2. Creating bridges
+go into GtkTerm
+/interface bridge add name=bridgeY0
+/interface bridge add name=bridgeY1
+3. remove ports
+/interface bridge port remove [find interface=ether1/2/4]
+add ports to bridges
+/interface bridge port add bridge=bridgeY10 interface=ether11
+/interface bridge port add bridge=bridgeY10 interface=ether12
+/interface bridge port add bridge=bridgeY11 interface=ether14
+
