@@ -39,6 +39,7 @@ int main(int argc, char *argv[]){
         printf("unable to open connection\n");
         exit(-1);
     }
+    printf("control socket: %d\n", socket_contr);
 
     // Log in
     if(log_in(socket_contr, args.user, args.password) == -1){
@@ -61,13 +62,20 @@ int main(int argc, char *argv[]){
         printf("unable to get data socket\n");
         exit(-1);
     }
+    printf("data socket: %d\n", data_socket);
 
-/*
+
     // change remote directory
-    // if(download(socket_contr, data_socket, args.path) == -1){
-    //     printf("unable to download\n");
-    //     exit(-1);
-    // }
-*/
+    if(go_to(socket_contr, args.path) == -1){
+        printf("go to didnt work\n");
+        exit(-1);
+    }
+
+    // download 
+    if(download(socket_contr, data_socket, args.path) == -1){
+        printf("unable to download\n");
+        exit(-1);
+    }
+
     return 0;
 }

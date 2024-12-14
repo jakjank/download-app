@@ -30,6 +30,11 @@ int log_in(int socket_fd, char *user, char *passwd);
 // sets port and ip
 int go_passive(int socket_fd, char *ip, int *port);
 
+// goes to given dir
+// (checks if path is empty)
+int go_to(int contr_socket, char *path);
+
+
 int download(int contr_socket, int data_socket, char *path);
 
 #endif

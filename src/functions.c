@@ -102,29 +102,36 @@ int go_passive(int socket_fd, char *ip, int *port) {
     return -1;
 }
 
-int go_to(int contr_socket, int data_socket, char *path){   
+int go_to(int contr_socket, char *path){   
     char buffer[1024] = {0};
     char *last_slash = strrchr(path, '/');
     char *filename;
-    char *tmp_path;
+    char tmp_path[128] = {0};
 
     //get path
     if (last_slash != NULL) {
         size_t length = last_slash - path + 1;
         strncpy(tmp_path, path, length);
         tmp_path[length] = '\0';
-    } else {
-        tmp_path[0] = '\0';
     }
-    //printf("path; %s\n", tmp_path);
+    
+    printf("path: %s\n", tmp_path);
 
-    if(tmp_path[0] != '\0'){
-        snprintf(buffer, sizeof(buffer), "CD %s\r\n\n", tmp_path);
+    if(tmp_path[0] != 0){
+        snprintf(buffer, sizeof(buffer), "CD %s\r\n", tmp_path);
         if(send(contr_socket, buffer, strlen(buffer), 0) < 0){
             printf("unable send CD ...\n");
             return -1;
         }
     }
+    
+    return 0;
+}
+
+int download(int contr_socket, int data_socket, char *path){
+    char buffer[1024] = {0};
+    char *last_slash = strrchr(path, '/');
+    char filename[128]= {0};
 
     memset(buffer, '0', sizeof(buffer));
     if(last_slash != 0){
@@ -133,9 +140,9 @@ int go_to(int contr_socket, int data_socket, char *path){
     else{
         strcpy(filename, path);
     }
-    //printf("filename; %s\n", filename);
+    printf("filename: %s\n", filename);
 
-    snprintf(buffer, sizeof(buffer), "RETR %s\r\n\n", filename);
+    snprintf(buffer, sizeof(buffer), "RETR %s\r\n", filename);
     if(send(contr_socket, buffer, sizeof(buffer), 0) < 0){
         printf("unable to send RETR ...\n");
         return -1;
@@ -148,11 +155,6 @@ int go_to(int contr_socket, int data_socket, char *path){
         fwrite(buffer, 1, bytes_received, file);
     }
     fclose(file);
-    
-    return 0;
-}
 
-int download(int contr_socket, int data_socket, char *path)
-{
     return 0;
 }
