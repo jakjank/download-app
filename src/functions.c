@@ -148,7 +148,7 @@ int download(int contr_socket, int data_socket, char *path){
         return -1;
     }
 
-    FILE *file = fopen("downloaded_file", "wb");
+    FILE *file = fopen(path, "wb");
 
     int bytes_received;
     while ((bytes_received = recv(data_socket, buffer, sizeof(buffer), 0)) > 0) {
