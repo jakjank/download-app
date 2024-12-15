@@ -9,9 +9,26 @@
 
 
 int parse_arguments(char *url, args *args){   
-    // 99 like MAX_LENGTH
-    return sscanf(url, "ftp://%99[^:]:%99[^@]@%99[^/]/%99[^\n]",
-                  args->user, args->password, args->host, args->path);
+    // Initialize args with empty strings
+    memset(args, 0, sizeof(*args));
+    
+    // Try to parse with user and password
+    int parsed = sscanf(url, "ftp://%99[^:]:%99[^@]@%99[^/]/%99[^\n]",
+                        args->user, args->password, args->host, args->path);
+    
+    if (parsed == 4) return 4; // Parsed user, password, host, and path
+
+    // Try to parse with user only
+    parsed = sscanf(url, "ftp://%99[^@]@%99[^/]/%99[^\n]",
+                    args->user, args->host, args->path);
+    
+    if (parsed == 3) return 3; // Parsed user, host, and path
+
+    // Try to parse without user and password
+    parsed = sscanf(url, "ftp://%99[^/]/%99[^\n]",
+                    args->host, args->path);
+    
+    return parsed == 2 ? 2 : -1; // Parsed host and path or failed
 }
 
 int get_socket(const char *address, int port, int resp){
@@ -48,21 +65,21 @@ int log_in(int socket_fd, char *user, char *passwd){
     char buffer[128];
     char r_buffer[1024] = {0};
 
-    snprintf(buffer, sizeof(buffer), "USER %s\r\n", user);
-    printf("sending: %s", buffer);
-    int size = send(socket_fd, buffer, strlen(buffer), 0);
-    recv(socket_fd, r_buffer, sizeof(r_buffer) - 1, 0);
-    printf("Server Response: %s", r_buffer);
-    
-    for(int i=0;i<1024;i++){
-        r_buffer[i] = '\0';
+    if (user[0] != '\0') {
+        snprintf(buffer, sizeof(buffer), "USER %s\r\n", user);
+        printf("sending: %s", buffer);
+        send(socket_fd, buffer, strlen(buffer), 0);
+        recv(socket_fd, r_buffer, sizeof(r_buffer) - 1, 0);
+        printf("Server Response: %s", r_buffer);
     }
-    snprintf(buffer, sizeof(buffer), "PASS %s\r\n", passwd);
-    printf("sending: %s", buffer);
-    size = send(socket_fd, buffer, strlen(buffer), 0);
-    //printf("sent %d bytes\n", size);
-    recv(socket_fd, r_buffer, sizeof(r_buffer) - 1, 0);
-    printf("Server Response: %s", r_buffer);
+
+    if (passwd[0] != '\0') {
+        snprintf(buffer, sizeof(buffer), "PASS %s\r\n", passwd);
+        printf("sending: %s", buffer);
+        send(socket_fd, buffer, strlen(buffer), 0);
+        recv(socket_fd, r_buffer, sizeof(r_buffer) - 1, 0);
+        printf("Server Response: %s", r_buffer);
+    }
 
     return 0;
 }

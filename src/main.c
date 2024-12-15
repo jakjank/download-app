@@ -15,8 +15,9 @@ int main(int argc, char *argv[]){
     
     // Parse arguments
     args args;
-    if(parse_arguments(argv[1], &args) < 0){
-        printf("too litle arguments. \n");
+    int parsed = parse_arguments(argv[1], &args);
+    if(parsed < 0){
+        printf("invalid arguments. \n");
         exit(-1);
     }
 
@@ -30,8 +31,6 @@ int main(int argc, char *argv[]){
         exit(-1);
     }
     const char *address = inet_ntoa(*((struct in_addr *)h->h_addr_list[0]));
-
-    //printf("%s\n", address);
 
     // Open a connection
     int socket_contr = get_socket(address, PORT, 1);
@@ -63,7 +62,6 @@ int main(int argc, char *argv[]){
         exit(-1);
     }
     printf("data socket: %d\n", data_socket);
-
 
     // change remote directory
     if(go_to(socket_contr, args.path) == -1){
