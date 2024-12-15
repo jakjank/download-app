@@ -115,7 +115,7 @@ int go_to(int contr_socket, char *path){
         tmp_path[length] = '\0';
     }
     
-    printf("path: %s\n", tmp_path);
+    printf("path: ./%s\n", tmp_path);
 
     if(tmp_path[0] != 0){
         snprintf(buffer, sizeof(buffer), "CD %s\r\n", tmp_path);
@@ -148,7 +148,7 @@ int download(int contr_socket, int data_socket, char *path){
         return -1;
     }
 
-    FILE *file = fopen(path, "wb");
+    FILE *file = fopen(filename, "wb");
 
     int bytes_received;
     while ((bytes_received = recv(data_socket, buffer, sizeof(buffer), 0)) > 0) {
